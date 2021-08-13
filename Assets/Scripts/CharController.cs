@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using static GameStateScript;
 
 public class CharController : MonoBehaviour
@@ -8,21 +9,19 @@ public class CharController : MonoBehaviour
     /*
      * public GameObject touchArea;
 
-    public Vector2 startPos;
-
-    public float yBoundry;
-    public float negYBoundry;
-
     //-----------------------
 
-    private Camera mainCam;
+    
 
     private float speed = 16.0f;
 
-    private bool canMove;  */
+     */
 
     public GameObject gameManager;
     
+    private Camera mainCam;
+    public Vector2 touchStartPos;
+    private bool canMove; 
 
     private float speed = 15.0f;
 
@@ -36,30 +35,38 @@ public class CharController : MonoBehaviour
     void Start()
     {
         gameManager = GameObject.FindGameObjectWithTag("GameManager");
+        mainCam = Camera.main;
 
-        this.gameObject.GetComponent<Rigidbody>().velocity = new Vector3(0.0f, 0.0f, -5.0f);
+        canMove = false;
+
+        GetComponent<Rigidbody>().velocity = new Vector3(0.0f, 0.0f, -5.0f);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(gameManager.GetComponent<ManagerScript>().gameState == GameState.Playing)
+        if(gameManager.GetComponent<ManagerScript>().gameState == GameStateScript.GameState.Playing)
             GetComponent<Rigidbody>().velocity = new Vector3(0.0f, 0.0f, -5.0f);
-
+        
+        //if(gameManager.GetComponent<ManagerScript>().gameState != GameState.Playing)
+        //    GetComponent<Rigidbody>().velocity = Vector3.zero;
+        
         if (transform.position.z <= levelEnd.position.z)
-            gameManager.GetComponent<ManagerScript>().gameState = GameState.Won;
+            gameManager.GetComponent<ManagerScript>().gameState = GameState.Waiting;
 
+#if UNITY_EDITOR || UNITY_STANDALONE
         if (Input.GetAxis("Horizontal") != 0)
         {
             // Debug.Log(Input.GetAxis("Horizontal"));
             transform.position = new Vector3((transform.position.x - (Input.GetAxis("Horizontal") * speed * Time.deltaTime)), transform.position.y, transform.position.z);
         }
+#endif
 
-        #if MOBILE_INPUT
+#if UNITY_IOS || UNITY_ANDROID
 
-        switch (gameManager.GetComponent<GameManager>().gameState)
+        switch (gameManager.GetComponent<ManagerScript>().gameState)
         {
-            case GameStateScript.GameState.Playing :
+            case GameState.Playing :
                 if (Input.touchCount > 0)
                 {
                     Touch touch = Input.GetTouch(0);         
@@ -68,18 +75,12 @@ public class CharController : MonoBehaviour
                     {
                         // Record initial touch position.
                         case TouchPhase.Began:                   
-                            startPos = touch.position;
+                            touchStartPos = touch.position;
 
-                            Debug.Log("Began: " + mainCam.ScreenToWorldPoint(startPos));// + "pixel: " + startPos);
-                            Debug.Log("TouchArea: " + touchArea.transform.position);
-                            //Debug.Log(touchArea.GetComponent<CircleCollider2D>().OverlapPoint(mainCam.ScreenToWorldPoint(startPos)));
+                            Debug.Log("Began: " + mainCam.ScreenToWorldPoint(touchStartPos));// + "pixel: " + startPos);
+                            
+                            canMove = true;
 
-                            if (touchArea.GetComponent<CircleCollider2D>().OverlapPoint(mainCam.ScreenToWorldPoint(startPos))) //touchArea.GetComponent<CircleCollider2D>().bounds.Contains(startPos))
-                            {
-                                Debug.Log("ContainsFinger");
-                                canMove = true;
-                            }
-               
                             break;
                 
                         // Determine direction by comparing the current touch position with the initial one.
@@ -88,7 +89,8 @@ public class CharController : MonoBehaviour
                             if (canMove)
                             {
 
-                                transform.position = new Vector3(transform.position.x, mainCam.ScreenToWorldPoint(touch.position).y, transform.position.z);
+                                transform.position = new Vector3(mainCam.ScreenToWorldPoint(touch.position).x,  
+                                    0.0f, 0.0f);
 
                                 /*direction = touch.position - startPos;
                                 Debug.Log("Moved to: " + direction.normalized.y + " in norm pixels, and " + mainCam.ScreenToWorldPoint(direction.normalized).y + " in world space.");*/
@@ -98,14 +100,14 @@ public class CharController : MonoBehaviour
                 
                         // Report that a direction has been chosen when the finger is lifted.
                         case TouchPhase.Ended:
-                            Debug.Log("Ended");
+                            Debug.Log("Ended at" + mainCam.ScreenToWorldPoint(touch.position));
                             canMove = false;
                             break;
                     }
                 }
                 break;
             }
-        #endif
+#endif
 
         if (transform.position.x > xBoundry)
             transform.position = new Vector3(xBoundry, transform.position.y, transform.position.z);

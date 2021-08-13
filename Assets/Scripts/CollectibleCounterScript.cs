@@ -5,7 +5,10 @@ using UnityEngine.UI;
 
 public class CollectibleCounterScript : MonoBehaviour
 {
+    public GameObject gameManager;
+    
     public int collectibleCount;
+    public int collectibleCountForNextLevel;
 
     public Text collectibleCountText;
     // Start is called before the first frame update
@@ -25,6 +28,12 @@ public class CollectibleCounterScript : MonoBehaviour
         if(other.gameObject.tag == "Collectible")
         {
             collectibleCount++;
+        }
+
+        if (collectibleCount >= collectibleCountForNextLevel)
+        {
+            Debug.Log("Proceed to next level");
+            gameManager.GetComponent<ManagerScript>().gameState = GameStateScript.GameState.ToNextLevel;
         }
     }
 }

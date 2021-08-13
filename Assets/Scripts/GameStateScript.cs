@@ -6,14 +6,11 @@ public class GameStateScript
 {
     public enum GameState
     {
-        InMainMenu,
-        InShop,
-        InGame,
         Waiting,
         Playing,
         Won,
         Lost,
-        InGameMenu
+        ToNextLevel
     };
 
     /*public static GameStateScript(GameState gameState)

@@ -9,7 +9,7 @@ public class ManagerScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        gameState = GameState.Playing;
+        gameState = GameState.Waiting;
     }
 
     // Update is called once per frame
